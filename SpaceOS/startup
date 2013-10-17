@@ -1,3 +1,15 @@
+-- Colours
+local promptColour, textColour, bgColour
+if term.isColour() then
+	promptColour = colours.yellow
+	textColour = colours.white
+	bgColour = colours.black
+else
+	promptColour = colours.white
+	textColour = colours.white
+	bgColour = colours.black
+end
+
 local tApis = fs.list( "/SpaceOS/apis/" )
 for n,sFile in ipairs( tApis ) do
 	if string.sub( sFile, 1, 1 ) ~= "." then
@@ -8,4 +20,9 @@ for n,sFile in ipairs( tApis ) do
 	end
 end
 
-shell.setPath( "/SpaceOS/programs:"..shell.path() )
+shell.setPath( "/SpaceOS/programs/console:"..shell.path() )
+
+term.setBackgroundColor( bgColour )
+term.setTextColour( promptColour )
+print( "SpaceOS v0.1" )
+term.setTextColour( textColour )
