@@ -19,8 +19,6 @@ else
 	error("Could not retrieve remote file.")
 end
 
-local fileHandle = io.open(shell.getRunningProgram(), "r")
-if fileHandle then
-	shell.run(shell.getRunningProgram())
-	return
-end
+print("Download complete")
+
+shell.run(shell.getRunningProgram(), "noupdate")

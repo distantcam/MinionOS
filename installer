@@ -1,3 +1,23 @@
+local versionNumber = 0.1
+
+function resetScreen()
+		term.clear()
+		term.setCursorPos(1,1)
+		xlim, ylim = term.getSize()
+		if xlim >= 20 then
+				term.write("=SpaceOS Installer"..string.rep("=", xlim - 18))
+				term.setCursorPos(1,2)
+		end
+end
+
+-- End Functions
+
+if not http then
+	printError( "SpaceOS installer requires http API" )
+	printError( "Set enableAPI_http to true in ComputerCraft.cfg" )
+	return
+end
+
 local args = {...}
 
 local osPath = "/SpaceOS"
@@ -9,6 +29,52 @@ if #args == 1 and args[1] == "uninstall" then
 	return
 end
 
+resetScreen()
+
 if not fs.exists(osPath) or not fs.isDir(osPath) then
 	fs.makeDir(osPath)
 end
+
+if #args < 1 or (args[1] ~= "noupdate") then
+	local remoteHandle = http.get("https://raw.github.com/distantcam/SpaceOS/master/installer")
+	if remoteHandle then
+		fileHandle = io.open(shell.getRunningProgram(), "w")
+		if fileHandle then
+			fileHandle:write(remoteHandle.readAll())
+			fileHandle:close()
+		else
+			error("Could not open file "..shell.getRunningProgram())
+		end
+	else
+		error("Could not retrieve remote file.")
+	end
+	local fileHandle = io.open(shell.getRunningProgram(), "r")
+	if fileHandle then
+		local newVersionNumber = tonumber(string.match(fileHandle:read("*l"), "local versionNumber = (.*)"))
+		fileHandle:close()
+		if newVersionNumber > versionNumber then
+			shell.run(shell.getRunningProgram(), "noupdate")
+			return
+		end
+	end
+	resetScreen()
+end
+
+-- TODO Install Files
+
+-- TODO Install startup script
+
+print("Reboot now? (Y/n)")
+term.write("> ")
+input = read()
+if #input > 0 then
+	input = string.lower(string.sub(input, 1, 1))
+	if input == "y" then
+		os.reboot()
+	end
+else
+	os.reboot()
+end
+
+term.clear()
+term.setCursorPos(1,1)
