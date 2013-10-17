@@ -26,7 +26,6 @@ local function downloadFile(url, filePath)
 end
 
 local function downloadGitHubDirectory(url, dirPath)
-	local JSON = (loadfile osPath.."/apis/JSON")()
 	local remoteHandle = http.get(url)
 
 	if remotehandle == nil then
@@ -34,11 +33,15 @@ local function downloadGitHubDirectory(url, dirPath)
 		return
 	end
 
-	local result = JSON:decode(remoteHandle)
+	local text = remoteHandle.readAll()
+
+	local result = json.decode(text)
 
 	for k,v in pairs(result) do
-		if v["type"] == "dir" and not fs.exists(dirPath..v["name"]) then
-			fs.makeDir(dirPath..v["name"])
+		if v["type"] == "dir" and  then
+			if not fs.exists(dirPath..v["name"]) then
+				fs.makeDir(dirPath..v["name"])
+			end
 			downloadGitHubDirectory(v["url"], dirPath..v["name"])
 		end
 	end
@@ -85,9 +88,11 @@ if #args < 1 or (args[1] ~= "noupdate") then
 end
 
 -- TODO Install Files
-if not fs.exists(osPath.."/apis/JSON") then
-	downloadFile("https://raw.github.com/distantcam/SpaceOS/master/SpaceOS/apis/JSON", osPath.."/apis/JSON")
+if not fs.exists(osPath.."/apis") then fs.makeDir(osPath.."/apis") end
+if not fs.exists(osPath.."/apis/json") then
+	downloadFile("https://raw.github.com/distantcam/SpaceOS/master/SpaceOS/apis/json", osPath.."/apis/json")
 end
+os.loadAPI(osPath.."/apis/json")
 
 downloadGitHubDirectory("https://api.github.com/repos/distantcam/SpaceOS/contents/SpaceOS/", osPath)
 
