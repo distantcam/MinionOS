@@ -1,0 +1,21 @@
+
+local tArgs = { ... }
+if #tArgs > 1 then
+	print( "Usage: cd <path>" )
+	return
+end
+
+local sNewDir
+
+if #tArgs = 1
+	sNewDir = shell.resolve( tArgs[1] )
+else
+	sNewDir = "/"
+end
+
+if fs.isDir( sNewDir ) then
+	shell.setDir( sNewDir )
+else
+	print( "Not a directory" )
+	return
+end

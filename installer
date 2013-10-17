@@ -1,0 +1,14 @@
+local args = {...}
+
+local osPath = "/SpaceOS"
+
+if #args == 1 and args[1] == "uninstall" then
+	if fs.exists(osPath) then
+		fs.delete(osPath)
+	end
+	return
+end
+
+if not fs.exists(osPath) or not fs.isDir(osPath) then
+	fs.makeDir(osPath)
+end

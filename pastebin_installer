@@ -1,0 +1,26 @@
+if not http then
+    printError( "SpaceOS installer requires http API" )
+    printError( "Set enableAPI_http to true in ComputerCraft.cfg" )
+    return
+end
+
+print("Downloading installer from GitHub")
+
+local remoteHandle = http.get("https://raw.github.com/distantcam/SpaceOS/master/installer")
+if remoteHandle then
+	fileHandle = io.open(shell.getRunningProgram(), "w")
+	if fileHandle then
+		fileHandle:write(remoteHandle.readAll())
+		fileHandle:close()
+	else
+		error("Could not open file "..shell.getRunningProgram())
+	end
+else
+	error("Could not retrieve remote file.")
+end
+
+local fileHandle = io.open(shell.getRunningProgram(), "r")
+if fileHandle then
+	shell.run(shell.getRunningProgram())
+	return
+end
