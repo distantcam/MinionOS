@@ -1,0 +1,43 @@
+local tArgs = { ... }
+if #tArgs ~= 2 then
+    print ("Usage: wget <url> <file>")
+    return
+end
+
+if not http then
+    printError( "wget requires http API" )
+    printError( "Set enableAPI_http to true in ComputerCraft.cfg" )
+    return
+end
+
+local function get(url)
+    write( "Connecting to url... " )
+    local response = http.get(url)
+
+    if response then
+        print( "Success." )
+        
+        local sResponse = response.readAll()
+        response.close()
+        return sResponse
+    else
+        printError( "Failed." )
+    end
+end
+
+local url = tArgs[1]
+local file = tArgs[2]
+local path = shell.resolve( file )
+if fs.exists( path ) then
+    print( "File already exists" )
+    return
+end
+
+local res = get(url)
+if res then
+    local f = fs.open( file, "w" )
+    f.write( res )
+    f.close()
+
+    print( "Downloaded as "..file )
+end

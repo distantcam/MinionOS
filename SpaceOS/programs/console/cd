@@ -7,10 +7,10 @@ end
 
 local sNewDir
 
-if #tArgs = 1
-	sNewDir = shell.resolve( tArgs[1] )
+if #tArgs == 0 then
+	sNewDir = shell.resolve( "/" )
 else
-	sNewDir = "/"
+	sNewDir = shell.resolve( tArgs[1] )
 end
 
 if fs.isDir( sNewDir ) then

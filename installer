@@ -1,4 +1,4 @@
-local versionNumber = 0.1
+local versionNumber = 0.2
 
 local function resetScreen()
 	term.clear()
@@ -35,14 +35,18 @@ local function downloadGitHubDirectory(url, dirPath)
 
 	local text = remoteHandle.readAll()
 
-	local result = json.decode(text)
+	local obj = json.decode(text)
 
-	for k,v in pairs(result) do
-		if v["type"] == "dir" then
-			if not fs.exists(dirPath..v["name"]) then
-				fs.makeDir(dirPath..v["name"])
+	for i,v in ipairs(obj) do
+		if v.type == "dir" then
+			if not fs.exists(dirPath..v.name) then
+				fs.makeDir(dirPath..v.name)
 			end
-			downloadGitHubDirectory(v["url"], dirPath..v["name"])
+			downloadGitHubDirectory(v.url, dirPath..v.name.."/")
+		elseif v.type == "file" then
+			if not fs.exists(dirPath..v.name) then
+				downloadFile("https://raw.github.com/distantcam/"..v.path, dirPath..v.name)
+			end
 		end
 	end
 
@@ -94,7 +98,7 @@ if not fs.exists(osPath.."/apis/json") then
 end
 os.loadAPI(osPath.."/apis/json")
 
-downloadGitHubDirectory("https://api.github.com/repos/distantcam/SpaceOS/contents/SpaceOS/", osPath)
+downloadGitHubDirectory("https://api.github.com/repos/distantcam/SpaceOS/contents/SpaceOS/", osPath.."/")
 
 -- TODO Install startup script
 
