@@ -1,4 +1,10 @@
-local versionNumber = 0.2
+local versionNumber = 0.3
+
+local args = {...}
+
+local osPath = "/SpaceOS"
+local rawURL = "https://raw.github.com/distantcam/SpaceOS/master/"
+local apiURL = "https://api.github.com/repos/distantcam/SpaceOS/contents/"
 
 local function resetScreen()
 	term.clear()
@@ -40,12 +46,14 @@ local function downloadGitHubDirectory(url, dirPath)
 	for i,v in ipairs(obj) do
 		if v.type == "dir" then
 			if not fs.exists(dirPath..v.name) then
+				print("Making directory "..v.path)
 				fs.makeDir(dirPath..v.name)
 			end
 			downloadGitHubDirectory(v.url, dirPath..v.name.."/")
 		elseif v.type == "file" then
 			if not fs.exists(dirPath..v.name) then
-				downloadFile("https://raw.github.com/distantcam/"..v.path, dirPath..v.name)
+				print("Downloading file "..v.path)
+				downloadFile(rawURL..v.path, dirPath..v.name)
 			end
 		end
 	end
@@ -59,10 +67,6 @@ if not http then
 	printError( "Set enableAPI_http to true in ComputerCraft.cfg" )
 	return
 end
-
-local args = {...}
-
-local osPath = "/SpaceOS"
 
 if #args == 1 and (args[1] == "remove" or args[1] == "-r") then
 	if fs.exists(osPath) then
@@ -78,7 +82,7 @@ if not fs.exists(osPath) or not fs.isDir(osPath) then
 end
 
 if #args < 1 or (args[1] ~= "noupdate") then
-	downloadFile("https://raw.github.com/distantcam/SpaceOS/master/installer", shell.getRunningProgram())
+	downloadFile(rawURL.."installer", shell.getRunningProgram())
 	local fileHandle = io.open(shell.getRunningProgram(), "r")
 	if fileHandle then
 		local newVersionNumber = tonumber(string.match(fileHandle:read("*l"), "local versionNumber = (.*)"))
@@ -91,14 +95,14 @@ if #args < 1 or (args[1] ~= "noupdate") then
 	resetScreen()
 end
 
--- TODO Install Files
 if not fs.exists(osPath.."/apis") then fs.makeDir(osPath.."/apis") end
 if not fs.exists(osPath.."/apis/json") then
-	downloadFile("https://raw.github.com/distantcam/SpaceOS/master/SpaceOS/apis/json", osPath.."/apis/json")
+	print("Downloading JSON api")
+	downloadFile(rawURL.."SpaceOS/apis/json", osPath.."/apis/json")
 end
 os.loadAPI(osPath.."/apis/json")
 
-downloadGitHubDirectory("https://api.github.com/repos/distantcam/SpaceOS/contents/SpaceOS/", osPath.."/")
+downloadGitHubDirectory(apiURL.."SpaceOS/", osPath.."/")
 
 -- TODO Install startup script
 
