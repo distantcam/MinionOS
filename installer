@@ -38,7 +38,7 @@ local function downloadGitHubDirectory(url, dirPath)
 	local result = json.decode(text)
 
 	for k,v in pairs(result) do
-		if v["type"] == "dir" and  then
+		if v["type"] == "dir" then
 			if not fs.exists(dirPath..v["name"]) then
 				fs.makeDir(dirPath..v["name"])
 			end
