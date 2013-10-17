@@ -1,4 +1,4 @@
-local versionNumber = 0.4
+local versionNumber = 0.5
 
 local args = {...}
 
@@ -104,7 +104,19 @@ os.loadAPI(osPath.."/apis/json")
 
 downloadGitHubDirectory(apiURL.."SpaceOS/", osPath.."/")
 
--- TODO Install startup script
+print("Run SpaceOS on startup? (y/N)")
+term.write("> ")
+local input = read()
+if #input > 0 then
+	input = string.lower(string.sub(input, 1, 1))
+	if input == "y" then
+		local handle = io.open("/startup", "a")
+		if handle then
+			handle:write([[shell.run("]]..osPath..[[/startup")]].."\n")
+			handle:close()
+		end
+	end
+end
 
 print("Reboot now? (Y/n)")
 term.write("> ")
