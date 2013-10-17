@@ -1,13 +1,48 @@
 local versionNumber = 0.1
 
-function resetScreen()
-		term.clear()
-		term.setCursorPos(1,1)
-		xlim, ylim = term.getSize()
-		if xlim >= 20 then
-				term.write("=SpaceOS Installer"..string.rep("=", xlim - 18))
-				term.setCursorPos(1,2)
+local function resetScreen()
+	term.clear()
+	term.setCursorPos(1,1)
+	xlim, ylim = term.getSize()
+	if xlim >= 20 then
+		term.write("=SpaceOS Installer"..string.rep("=", xlim - 18))
+		term.setCursorPos(1,2)
+	end
+end
+
+local function downloadFile(url, filePath)
+	local remoteHandle = http.get(url)
+	if remoteHandle then
+		fileHandle = io.open(filePath, "w")
+		if fileHandle then
+			fileHandle:write(remoteHandle.readAll())
+			fileHandle:close()
+		else
+			error("Could not open file "..filePath)
 		end
+	else
+		error("Could not retrieve remote file.")
+	end
+end
+
+local function downloadGitHubDirectory(url, dirPath)
+	local JSON = (loadfile osPath.."/apis/JSON")()
+	local remoteHandle = http.get(url)
+
+	if remotehandle == nil then
+		error("Could not retrieve directory.")
+		return
+	end
+
+	local result = JSON:decode(remoteHandle)
+
+	for k,v in pairs(result) do
+		if v["type"] == "dir" and not fs.exists(dirPath..v["name"]) then
+			fs.makeDir(dirPath..v["name"])
+			downloadGitHubDirectory(v["url"], dirPath..v["name"])
+		end
+	end
+
 end
 
 -- End Functions
@@ -22,7 +57,7 @@ local args = {...}
 
 local osPath = "/SpaceOS"
 
-if #args == 1 and args[1] == "uninstall" then
+if #args == 1 and (args[1] == "remove" or args[1] == "-r") then
 	if fs.exists(osPath) then
 		fs.delete(osPath)
 	end
@@ -36,18 +71,7 @@ if not fs.exists(osPath) or not fs.isDir(osPath) then
 end
 
 if #args < 1 or (args[1] ~= "noupdate") then
-	local remoteHandle = http.get("https://raw.github.com/distantcam/SpaceOS/master/installer")
-	if remoteHandle then
-		fileHandle = io.open(shell.getRunningProgram(), "w")
-		if fileHandle then
-			fileHandle:write(remoteHandle.readAll())
-			fileHandle:close()
-		else
-			error("Could not open file "..shell.getRunningProgram())
-		end
-	else
-		error("Could not retrieve remote file.")
-	end
+	downloadFile("https://raw.github.com/distantcam/SpaceOS/master/installer", shell.getRunningProgram())
 	local fileHandle = io.open(shell.getRunningProgram(), "r")
 	if fileHandle then
 		local newVersionNumber = tonumber(string.match(fileHandle:read("*l"), "local versionNumber = (.*)"))
@@ -61,6 +85,11 @@ if #args < 1 or (args[1] ~= "noupdate") then
 end
 
 -- TODO Install Files
+if not fs.exists(osPath.."/apis/JSON") then
+	downloadFile("https://raw.github.com/distantcam/SpaceOS/master/SpaceOS/apis/JSON", osPath.."/apis/JSON")
+end
+
+downloadGitHubDirectory("https://api.github.com/repos/distantcam/SpaceOS/contents/SpaceOS/", osPath)
 
 -- TODO Install startup script
 
