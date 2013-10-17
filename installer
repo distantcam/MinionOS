@@ -1,4 +1,4 @@
-local versionNumber = 0.3
+local versionNumber = 0.4
 
 local args = {...}
 
@@ -34,7 +34,7 @@ end
 local function downloadGitHubDirectory(url, dirPath)
 	local remoteHandle = http.get(url)
 
-	if remotehandle == nil then
+	if remoteHandle == nil then
 		error("Could not retrieve directory.")
 		return
 	end
