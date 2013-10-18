@@ -8,15 +8,15 @@ print("Downloading installer from GitHub")
 
 local remoteHandle = http.get("https://raw.github.com/distantcam/SpaceOS/master/installer")
 if remoteHandle then
-	fileHandle = io.open(shell.getRunningProgram(), "w")
-	if fileHandle then
-		fileHandle:write(remoteHandle.readAll())
-		fileHandle:close()
-	else
-		error("Could not open file "..shell.getRunningProgram())
-	end
+    fileHandle = io.open(shell.getRunningProgram(), "w")
+    if fileHandle then
+        fileHandle:write(remoteHandle.readAll())
+        fileHandle:close()
+    else
+        error("Could not open file "..shell.getRunningProgram())
+    end
 else
-	error("Could not retrieve remote file.")
+    error("Could not retrieve remote file.")
 end
 
 print("Download complete")
