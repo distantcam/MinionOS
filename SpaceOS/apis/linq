@@ -6,10 +6,10 @@ Enumerable.__index = Enumerable
 -- ============================================================
 
 local function newEnumerable(collection)
-   local instance = setmetatable({ }, Enumerable)
-   instance.internalmarker = "EnumerableType"
-   instance.data = collection
-   return instance
+  local instance = setmetatable({ }, Enumerable)
+  instance.internalmarker = "EnumerableType"
+  instance.data = collection
+  return instance
 end
 
 -- ============================================================
@@ -17,46 +17,46 @@ end
 -- ============================================================
 
 function fromArray(collection)
-   return newEnumerable(collection)
+  return newEnumerable(collection)
 end
 
 function fromDictionary(dictionary)
-   local collection = { }
+  local collection = { }
 
-   for k, v in pairs(dictionary) do
-      table.insert(collection, { key = k, value = v })
-   end
+  for k, v in pairs(dictionary) do
+    table.insert(collection, { key = k, value = v })
+  end
 
-   return newEnumerable(collection)
+  return newEnumerable(collection)
 end
 
 function fromNil()
-   return newEnumerable({ })
+  return newEnumerable({ })
 end
 
 function fromIterator(iterator)
-   local collection = { }
-   for s in interator do
-      table.insert(collection, s)
-   end
-   return newEnumerable(collection)
+  local collection = { }
+  for s in interator do
+    table.insert(collection, s)
+  end
+  return newEnumerable(collection)
 end
 
 function from(auto)
-   if auto == nil then
-      return fromNil()
-   elseif type(auto) == "function" then
-      return fromIterator(auto)
-   elseif type(auto) == "table" then
-      if auto.internalmarker == "EnumerableType" then
-         return auto
-      elseif auto[1] == nil then
-         return fromDictionary(auto)
-      else
-         return fromArray(auto)
-      end
-   end
-   error("could not create enumerable from type "..type(auto))
+  if auto == nil then
+    return fromNil()
+  elseif type(auto) == "function" then
+    return fromIterator(auto)
+  elseif type(auto) == "table" then
+    if auto.internalmarker == "EnumerableType" then
+      return auto
+    elseif auto[1] == nil then
+      return fromDictionary(auto)
+    else
+      return fromArray(auto)
+    end
+  end
+  error("could not create enumerable from type "..type(auto))
 end
 
 -- ============================================================
@@ -64,31 +64,31 @@ end
 -- ============================================================
 
 function Enumerable:where(predicate)
-   if type(predicate) ~= "function" then
-      error("predicate argument must be a function.")
-   end
+  if type(predicate) ~= "function" then
+    error("predicate argument must be a function.")
+  end
 
-   if self.predicate == nil then
-      self.predicate = predicate
-   else
-      self.predicate = function(v) return self.predicate(v) and predicate(v); end
-   end
+  if self.predicate == nil then
+    self.predicate = predicate
+  else
+    self.predicate = function(v) return self.predicate(v) and predicate(v); end
+  end
 
-   return self
+  return self
 end
 
 function Enumerable:select(projection)
-   if type(projection) ~= "function" then
-      error("projection argument must be a function.")
-   end
+  if type(projection) ~= "function" then
+    error("projection argument must be a function.")
+  end
 
-   if self.projection == nil then
-      self.projection = projection
-   else
-      self.projection = function(v) return projection(self.projection(v)); end
-   end
+  if self.projection == nil then
+    self.projection = projection
+  else
+    self.projection = function(v) return projection(self.projection(v)); end
+  end
 
-   return self
+  return self
 end
 
 -- ============================================================
@@ -96,27 +96,28 @@ end
 -- ============================================================
 
 function Enumerable:toIterator()
-   local i = 0
-   local n = #self.data
-   return function()
-      while i < n do
-         i = i + 1
-         local data = self.data[i]
-         if self.projection then
-            data = self.projection(data)
-         if self.predicate == nil or self.predicate(data) then 
-            return data
-         end
+  local i = 0
+  local n = #self.data
+  return function()
+    while i < n do
+      i = i + 1
+      local data = self.data[i]
+      if self.projection then
+        data = self.projection(data)
       end
-   end
+      if self.predicate == nil or self.predicate(data) then 
+        return data
+      end
+    end
+  end
 end
 
 function Enumerable:toArray()
-   local result = { }
+  local result = { }
 
-   for value in self:toIterator() do
-      table.insert(result, value)
-   end
+  for value in self:toIterator() do
+    table.insert(result, value)
+  end
 
-   return result
+  return result
 end
