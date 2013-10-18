@@ -102,7 +102,7 @@ function Enumerable:toIterator()
       while i < n do
          i = i + 1
          local data = self.data[i]
-         if self.projection
+         if self.projection then
             data = self.projection(data)
          if self.predicate == nil or self.predicate(data) then 
             return data
