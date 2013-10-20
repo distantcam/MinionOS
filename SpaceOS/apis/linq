@@ -5,10 +5,10 @@ Enumerable.__index = Enumerable
 -- CONSTRUCTOR
 -- ============================================================
 
-local function newEnumerable(collection)
+local function newEnumerable(iterator)
   local instance = setmetatable({ }, Enumerable)
   instance.internalmarker = "EnumerableType"
-  instance.data = collection
+  instance.iterator = iterator
   return instance
 end
 
@@ -17,29 +17,34 @@ end
 -- ============================================================
 
 function fromArray(collection)
-  return newEnumerable(collection)
+  return newEnumerable(function()
+    local i = 0
+    local n = #collection
+
+    return function()
+      i = i + 1
+      if i <= n then return collection[i] end
+    end
+  end)
 end
 
 function fromDictionary(dictionary)
-  local collection = { }
+  return newEnumerable(function()
+    local k = nil
 
-  for k, v in pairs(dictionary) do
-    table.insert(collection, { key = k, value = v })
-  end
-
-  return newEnumerable(collection)
+    return function()
+      k, v = next(dictionary, k)
+      if k then return { key = k, value = v } end
+    end
+  end)
 end
 
 function fromNil()
-  return newEnumerable({ })
+  return fromArray({ })
 end
 
 function fromIterator(iterator)
-  local collection = { }
-  for s in interator do
-    table.insert(collection, s)
-  end
-  return newEnumerable(collection)
+  return newEnumerable(iterator)
 end
 
 function from(auto)
@@ -63,18 +68,39 @@ end
 -- QUERY METHODS
 -- ============================================================
 
+function Enumerable:concat(otherItems)
+  local otherEnum = from(otherItems)
+
+  return newEnumerable(function()
+    local iter = self.iterator()
+    local otherIter = otherEnum:toIterator()
+    return function()
+      local v = iter()
+      if v then return v end
+      v = otherIter()
+      if v then return v end
+    end
+  end)
+end
+
 function Enumerable:where(predicate)
   if type(predicate) ~= "function" then
     error("predicate argument must be a function.")
   end
 
-  if self.predicate == nil then
-    self.predicate = predicate
-  else
-    self.predicate = function(v) return self.predicate(v) and predicate(v); end
-  end
-
-  return self
+  return newEnumerable(function()
+    local iter = self.iterator()
+    local i = 0
+    return function()
+      local v = iter()
+      i = i + 1
+      while v and not predicate(v, i) do
+        v = iter()
+        i = i + 1
+      end
+      if v then return v end
+    end
+  end)
 end
 
 function Enumerable:select(projection)
@@ -82,13 +108,68 @@ function Enumerable:select(projection)
     error("projection argument must be a function.")
   end
 
-  if self.projection == nil then
-    self.projection = projection
-  else
-    self.projection = function(v) return projection(self.projection(v)); end
+  return newEnumerable(function()
+    local iter = self.iterator()
+    local i = 0
+    return function()
+      local v = iter()
+      i = i + 1
+      if v then return projection(v, i) end
+    end
+  end)
+end
+
+function Enumerable:selectMany(projection)
+  if type(projection) ~= "function" then
+    error("projection argument must be a function.")
   end
 
-  return self
+  return newEnumerable(function()
+    local iter = self.iterator()
+    local v = iter()
+    if not v then return function() return nil end end
+    local iter2 = from(projection(v)):toIterator()
+
+    return function()
+      local v2 = iter2()
+      if not v2 then
+        v = iter()
+        if v then
+          iter2 = from(projection(v)):toIterator()
+          v2 = iter2()
+        end
+      end
+      if v2 then return v2 end
+    end
+  end)
+end
+
+function Enumerable:skip(count)
+  return newEnumerable(function()
+    local iter = self.iterator()
+    local i = 0
+    return function()
+      local v = iter()
+      i = i + 1
+      while i <= count do
+        v = iter()
+        i = i + 1
+      end
+      if v then return v end
+    end
+  end)
+end
+
+function Enumerable:take(count)
+  return newEnumerable(function()
+    local iter = self.iterator()
+    local i = 0
+    return function()
+      local v = iter()
+      i = i + 1
+      if v and i <= count then return v end
+    end
+  end)
 end
 
 -- ============================================================
@@ -96,20 +177,7 @@ end
 -- ============================================================
 
 function Enumerable:toIterator()
-  local i = 0
-  local n = #self.data
-  return function()
-    while i < n do
-      i = i + 1
-      local data = self.data[i]
-      if self.projection then
-        data = self.projection(data)
-      end
-      if self.predicate == nil or self.predicate(data) then 
-        return data
-      end
-    end
-  end
+  return self.iterator()
 end
 
 function Enumerable:toArray()
@@ -120,4 +188,10 @@ function Enumerable:toArray()
   end
 
   return result
+end
+
+function Enumerable:dump()
+  for value in self:toIterator() do
+    print(tostring(value))
+  end
 end
