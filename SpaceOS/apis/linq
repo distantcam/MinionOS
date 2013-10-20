@@ -190,8 +190,12 @@ function Enumerable:toArray()
   return result
 end
 
-function Enumerable:dump()
+function Enumerable:dump(func)
+  if not func then
+    func = print
+  end
+
   for value in self:toIterator() do
-    print(tostring(value))
+    func(tostring(value))
   end
 end
