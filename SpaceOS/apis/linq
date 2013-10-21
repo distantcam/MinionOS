@@ -22,8 +22,10 @@ function fromArray(collection)
     local n = #collection
 
     return function()
-      i = i + 1
-      if i <= n then return collection[i] end
+      if i < n then
+        i = i + 1
+        return collection[i]
+      end
     end
   end)
 end
