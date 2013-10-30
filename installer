@@ -2,16 +2,16 @@ local versionNumber = 0.5
 
 local args = {...}
 
-local osPath = "/SpaceOS"
-local rawURL = "https://raw.github.com/distantcam/SpaceOS/master/"
-local apiURL = "https://api.github.com/repos/distantcam/SpaceOS/contents/"
+local osPath = "/Callistos"
+local rawURL = "https://raw.github.com/distantcam/Callistos/master/"
+local apiURL = "https://api.github.com/repos/distantcam/Callistos/contents/"
 
 local function resetScreen()
     term.clear()
     term.setCursorPos(1,1)
     xlim, ylim = term.getSize()
     if xlim >= 20 then
-        term.write("=SpaceOS Installer"..string.rep("=", xlim - 18))
+        term.write("=Callistos Installer"..string.rep("=", xlim - 16))
         term.setCursorPos(1,2)
     end
 end
@@ -63,7 +63,7 @@ end
 -- End Functions
 
 if not http then
-    printError( "SpaceOS installer requires http API" )
+    printError( "Callistos installer requires http API" )
     printError( "Set enableAPI_http to true in ComputerCraft.cfg" )
     return
 end
@@ -98,13 +98,13 @@ end
 if not fs.exists(osPath.."/apis") then fs.makeDir(osPath.."/apis") end
 if not fs.exists(osPath.."/apis/json") then
     print("Downloading JSON api")
-    downloadFile(rawURL.."SpaceOS/apis/json", osPath.."/apis/json")
+    downloadFile(rawURL.."Callistos/apis/json", osPath.."/apis/json")
 end
 os.loadAPI(osPath.."/apis/json")
 
-downloadGitHubDirectory(apiURL.."SpaceOS/", osPath.."/")
+downloadGitHubDirectory(apiURL.."Callistos/", osPath.."/")
 
-print("Run SpaceOS on startup? (y/N)")
+print("Run Callistos on startup? (y/N)")
 term.write("> ")
 local input = read()
 if #input > 0 then

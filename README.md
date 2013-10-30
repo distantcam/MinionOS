@@ -1,4 +1,4 @@
-SpaceOS
+Callistos
 =======
 
 An operating system for ComputerCraft.

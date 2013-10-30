@@ -10,17 +10,17 @@ else
 	bgColour = colours.black
 end
 
-local tApis = fs.list( "/SpaceOS/apis/" )
+local tApis = fs.list( "/Callistos/apis/" )
 for n,sFile in ipairs( tApis ) do
 	if string.sub( sFile, 1, 1 ) ~= "." then
-		local sPath = fs.combine( "/SpaceOS/apis/", sFile )
+		local sPath = fs.combine( "/Callistos/apis/", sFile )
 		if not fs.isDir( sPath ) then
 			os.loadAPI( sPath )
 		end
 	end
 end
 
-shell.setPath( "/SpaceOS/programs/console:"..shell.path() )
+shell.setPath( "/Callistos/programs/console:"..shell.path() )
 
 term.setBackgroundColor( bgColour )
 term.setTextColour( promptColour )
