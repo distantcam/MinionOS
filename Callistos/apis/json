@@ -15,6 +15,9 @@ end
 
 local whites = {['\n']=true; ['r']=true; ['\t']=true; [' ']=true; [',']=true; [':']=true}
 function removeWhite(str)
+   if not str then
+      return str
+   end
    while whites[str:sub(1, 1)] do
       str = str:sub(2)
    end

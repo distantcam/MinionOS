@@ -185,7 +185,7 @@ end
 function Enumerable:toArray()
   local result = { }
 
-  for value in self:toIterator() do
+  for value in self.iterator() do
     table.insert(result, value)
   end
 
@@ -197,7 +197,7 @@ function Enumerable:dump(func)
     func = print
   end
 
-  for value in self:toIterator() do
+  for value in self.iterator() do
     func(tostring(value))
   end
 end
