@@ -104,6 +104,11 @@ os.loadAPI(osPath.."/apis/json")
 
 downloadGitHubDirectory(apiURL.."Callistos/", osPath.."/")
 
+-- Get SEE installer from local repo until PR accepted
+downloadFile(rawURL.."see_installer", "see_installer")
+shell.run("see_installer", osPath.."/see")
+fs.delete("see_installer")
+
 print("Run Callistos on startup? (y/N)")
 term.write("> ")
 local input = read()
