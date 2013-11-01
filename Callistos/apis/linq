@@ -129,15 +129,17 @@ function Enumerable:selectMany(projection)
   return newEnumerable(function()
     local iter = self.iterator()
     local v = iter()
+    local i = 1
     if not v then return function() return nil end end
-    local iter2 = from(projection(v)):toIterator()
+    local iter2 = from(projection(v, i)):toIterator()
 
     return function()
       local v2 = iter2()
       if not v2 then
         v = iter()
+        i = i + 1
         if v then
-          iter2 = from(projection(v)):toIterator()
+          iter2 = from(projection(v, i)):toIterator()
           v2 = iter2()
         end
       end

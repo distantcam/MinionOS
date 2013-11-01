@@ -111,6 +111,9 @@ if #input > 0 then
     input = string.lower(string.sub(input, 1, 1))
     if input == "y" then
         local handle = io.open("/startup", "a")
+        if not handle then -- Append bug in ComputerCraft does not create
+            handle = io.open("/startup", "w")
+        end
         if handle then
             handle:write([[shell.run("]]..osPath..[[/startup")]].."\n")
             handle:close()
