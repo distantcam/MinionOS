@@ -25,9 +25,9 @@
   ]]
 
 --[[
-  _VERSION = 'inspect.lua 2.0.0 CC',
-  _MODIFIED = 'modified for ComputerCraft by DistantCam',
-  _URL     = 'http://github.com/kikito/inspect.lua',
+  _VERSION     = 'inspect.lua 2.0.0 CC',
+  _MODIFIED    = 'modified for ComputerCraft by DistantCam',
+  _URL         = 'http://github.com/kikito/inspect.lua',
   _DESCRIPTION = 'human-readable representations of tables'
   ]]
 
