@@ -20,7 +20,7 @@ for n,sFile in ipairs( tApis ) do
 	end
 end
 
-shell.setPath( "/Callistos/programs:"..shell.path() )
+shell.setPath( "/Callistos/programs:" .. shell.path() .. ":/Callistos/see/programs" )
 
 term.setBackgroundColor( bgColour )
 term.setTextColour( promptColour )
