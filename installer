@@ -2,16 +2,18 @@ local versionNumber = 0.5
 
 local args = {...}
 
-local osPath = "/Callistos"
-local rawURL = "https://raw.github.com/distantcam/Callistos/master/"
-local apiURL = "https://api.github.com/repos/distantcam/Callistos/contents/"
+local name = "Callistos"
+
+local osPath = "/" .. name
+local rawURL = "https://raw.github.com/distantcam/" .. name .. "/master/"
+local apiURL = "https://api.github.com/repos/distantcam/" .. name .. "/contents/"
 
 local function resetScreen()
     term.clear()
     term.setCursorPos(1,1)
     xlim, ylim = term.getSize()
     if xlim >= 20 then
-        term.write("=Callistos Installer"..string.rep("=", xlim - 16))
+        term.write("=" .. name .. " Installer"..string.rep("=", xlim - #name - 11 ))
         term.setCursorPos(1,2)
     end
 end
@@ -63,7 +65,7 @@ end
 -- End Functions
 
 if not http then
-    printError( "Callistos installer requires http API" )
+    printError( name .. " installer requires http API" )
     printError( "Set enableAPI_http to true in ComputerCraft.cfg" )
     return
 end
@@ -95,21 +97,21 @@ if #args < 1 or (args[1] ~= "noupdate") then
     resetScreen()
 end
 
-if not fs.exists(osPath.."/apis") then fs.makeDir(osPath.."/apis") end
-if not fs.exists(osPath.."/apis/json") then
+if not fs.exists(osPath .. "/apis") then fs.makeDir(osPath .. "/apis") end
+if not fs.exists(osPath .. "/apis/json") then
     print("Downloading JSON api")
-    downloadFile(rawURL.."Callistos/apis/json", osPath.."/apis/json")
+    downloadFile(rawURL .. name .. "/apis/json", osPath .. "/apis/json")
 end
-os.loadAPI(osPath.."/apis/json")
-
-downloadGitHubDirectory(apiURL.."Callistos/", osPath.."/")
+os.loadAPI(osPath .. "/apis/json")
 
 -- Get SEE installer from local repo until PR accepted
 downloadFile(rawURL.."see_installer", "see_installer")
 shell.run("see_installer", osPath.."/see")
 fs.delete("see_installer")
 
-print("Run Callistos on startup? (y/N)")
+downloadGitHubDirectory(apiURL .. name .. "/", osPath .. "/")
+
+print("Run " .. name .. " on startup? (y/N)")
 term.write("> ")
 local input = read()
 if #input > 0 then

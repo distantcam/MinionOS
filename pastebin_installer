@@ -1,12 +1,14 @@
+local name = "Callistos"
+
 if not http then
-    printError( "Callistos installer requires http API" )
+    printError( name .. " installer requires http API" )
     printError( "Set enableAPI_http to true in ComputerCraft.cfg" )
     return
 end
 
 print("Downloading installer from GitHub")
 
-local remoteHandle = http.get("https://raw.github.com/distantcam/Callistos/master/installer")
+local remoteHandle = http.get("https://raw.github.com/distantcam/" .. name .. "/master/installer")
 if remoteHandle then
     fileHandle = io.open(shell.getRunningProgram(), "w")
     if fileHandle then
