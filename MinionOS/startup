@@ -24,6 +24,7 @@ for n,sFile in ipairs( tApis ) do
 end
 
 shell.setPath( "/" .. name .. "/programs:" .. shell.path() )
+help.setPath( "/" .. name .. "/help:" .. help.path() )
 
 term.setBackgroundColor( bgColour )
 term.setTextColour( promptColour )

@@ -1,0 +1,5 @@
+wget is a program that can download any file from a public url.
+The HTTP API must be enabled in ComputerCraft.cfg to use this program.
+
+ex:
+"wget https://raw.github.com/distantcam/MinionOS/master/installer installer" to get the MinionOS installer
