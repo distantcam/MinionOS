@@ -1,0 +1,65 @@
+local args = { ... }
+
+if #args < 2 then
+  print ("Usage: packager <file1> <file2> ... <output>")
+  return
+end
+
+local output = args[#args]
+local path = shell.resolve( output )
+if fs.exists( path ) then
+  print( "Output file already exists" )
+  return
+end
+
+local loadLibCode = 
+[[
+
+function loadLib(lib)
+  local environment = setmetatable({}, { __index = _G })
+  setfenv(lib, environment)
+  lib()
+
+  local api = {}
+  for k, v in pairs(environment) do
+    api[k] = v
+  end
+
+  return api
+end
+
+]]
+
+local f = fs.open( path, "w" )
+
+for i = 1, #args-2 do
+  local libPath = args[i]
+  local name = fs.getName(libPath)
+
+  f.write("local function "..name.."Func()\r\n")
+
+  local fin = fs.open(libPath, "r")
+  if fin then
+    f.write(fin.readAll())
+    fin.close()
+  end
+
+  f.write("\r\nend\r\n")
+end
+
+f.write(loadLibCode)
+
+for i = 1, #args-2 do
+  local name = fs.getName(args[i])
+  f.write("local "..name.." = loadLib("..name.."Func)\r\n\r\n")
+end
+
+local progPath = fs.open(args[#args-1], "r")
+if progPath then
+  local prog = progPath.readAll()
+
+  f.write(prog)
+  progPath.close()
+end
+
+f.close()

@@ -1,4 +1,4 @@
-local name = "Callistos"
+local name = "MinionOS"
 local version = "0.1"
 
 -- Colours
@@ -23,7 +23,7 @@ for n,sFile in ipairs( tApis ) do
 	end
 end
 
-shell.setPath( "/" .. name .. "/programs:" .. shell.path() .. ":/" .. name .. "/see/programs" )
+shell.setPath( "/" .. name .. "/programs:" .. shell.path() )
 
 term.setBackgroundColor( bgColour )
 term.setTextColour( promptColour )
