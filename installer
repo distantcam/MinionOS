@@ -1,4 +1,4 @@
-local versionNumber = 0.5
+local versionNumber = 0.6
 
 local args = {...}
 
@@ -8,131 +8,261 @@ local osPath = "/" .. name
 local rawURL = "https://raw.github.com/distantcam/" .. name .. "/master/"
 local apiURL = "https://api.github.com/repos/distantcam/" .. name .. "/contents/"
 
-local function resetScreen()
+local function setTermTextColour(c1, c2)
+  if term.isColour() then
+    term.setTextColor(c1)
+  else
+    term.setTextColor(c2)
+  end
+end
+
+local function setTermBackgroundColour(c1, c2)
+  if term.isColour() then
+    term.setBackgroundColour(c1)
+  else
+    term.setBackgroundColour(c2)
+  end
+end
+
+local function writeCentered(text, width, line)
+  term.setCursorPos((width - #text) / 2 + 1, line)
+  term.write(text)
+end
+
+local function drawBox(x, y, w, h)
+  local corner = "+"
+  local borderh = "-"
+  local borderv = "|"
+  if term.isColour() then
+    corner = " "
+    borderh = " "
+    borderv = " "
+  end
+
+  term.setCursorPos(x, y)
+  term.write(corner..string.rep(borderh, w-2)..corner)
+  term.setCursorPos(x, y+h-1)
+  term.write(corner..string.rep(borderh, w-2)..corner)
+  for i = 1, h-2 do
+    term.setCursorPos(x, y+i)
+    term.write(borderv)
+    term.setCursorPos(x+w-1, y+i)
+    term.write(borderv)
+  end
+end
+
+local function drawButton(x, y, w, h, text, default)
+  for i = 1, h do
+    term.setCursorPos(x, y + i - 1)
+    term.write(string.rep(" ", w))
+  end
+  if default then
+    drawBox(x, y, w, h)
+  end
+  term.setCursorPos(x + (w - #text) / 2, y + (h / 2))
+  term.write(text)
+end
+
+local function installerScreen(message, percentage, redraw)
+  local w,h = term.getSize()
+  local yCentre = h / 2
+  local total = w - 4
+
+  term.setBackgroundColour(colours.black)
+
+  if redraw then
+    setTermTextColour(colours.lightGrey, colours.white)
     term.clear()
-    term.setCursorPos(1,1)
-    xlim, ylim = term.getSize()
-    if xlim >= 20 then
-        term.write("=" .. name .. " Installer"..string.rep("=", xlim - #name - 11 ))
-        term.setCursorPos(1,2)
+    if term.isColour() then
+      term.setCursorPos(3, yCentre + 2)
+      term.write(string.rep(" ", total))
+    else
+      drawBox(2, yCentre+2, total + 2, 3)
     end
+    setTermTextColour(colours.yellow, colours.white)
+    writeCentered("Installing "..name, w, yCentre-1)
+  end
+
+  setTermTextColour(colours.yellow, colours.white)
+  writeCentered(string.rep(" ", w), w, yCentre)
+  writeCentered(message, w, yCentre)
+  
+  local bar = string.rep(" ", total * percentage)
+
+  if term.isColour() then
+    term.setCursorPos(3, yCentre + 2)
+  else
+    term.setCursorPos(3, yCentre + 3)
+  end
+
+  setTermBackgroundColour(colours.grey, colours.white)
+  term.write(bar)
+
+  term.setBackgroundColour(colours.black)
+end
+
+local function hitTest(x, y, w, h, mx, my)
+  return x <= mx and x + w >= mx and y <= my and y + h >= my 
+end
+
+local function yesNoScreen(default, ...)
+  local w,h = term.getSize()
+  local xCentre = w / 2
+
+  term.setBackgroundColour(colours.black)
+  term.clear()
+
+  setTermTextColour(colours.yellow, colours.white)
+
+  local messages = { ... }
+  local y = 2
+  for i = 1, #messages do
+    writeCentered(messages[i], w-2, y)
+    y = y + 1
+  end
+
+  setTermTextColour(colours.white, colours.black)
+  if default then
+    setTermBackgroundColour(colours.lightBlue, colours.white)
+  else
+    setTermBackgroundColour(colours.grey, colours.white)
+  end
+  drawButton(xCentre - 10, h - 6, 9, 3, "Yes", default)
+  if not default then
+    setTermBackgroundColour(colours.lightBlue, colours.white)
+  else
+    setTermBackgroundColour(colours.grey, colours.white)
+  end
+  drawButton(xCentre + 3, h - 6, 9, 3, "No", not default)
+
+  setTermTextColour(colours.white, colours.white)
+  setTermBackgroundColour(colours.black, colours.black)
+
+  while true do
+    local sEvent, param, mx, my = os.pullEvent()
+
+    if sEvent == "char" then
+      if param == "y" then
+        return true
+      elseif param == "n" then
+        return false
+      end
+
+    elseif sEvent == "key" then
+      if param == keys.enter then
+        return default
+      end
+
+    elseif sEvent == "mouse_click" then
+      if hitTest(xCentre - 10, h - 6, 9, 3, mx, my) then
+        return true
+      elseif hitTest(xCentre + 3, h - 6, 9, 3, mx, my) then
+        return false
+      end
+    end
+  end
 end
 
 local function downloadFile(url, filePath)
-    local remoteHandle = http.get(url)
-    if remoteHandle then
-        fileHandle = io.open(filePath, "w")
-        if fileHandle then
-            fileHandle:write(remoteHandle.readAll())
-            fileHandle:close()
-        else
-            error("Could not open file "..filePath)
-        end
+  local remoteHandle = http.get(url)
+  if remoteHandle then
+    fileHandle = io.open(filePath, "w")
+    if fileHandle then
+      fileHandle:write(remoteHandle.readAll())
+      fileHandle:close()
     else
-        error("Could not retrieve remote file.")
+      error("Could not open file "..filePath)
     end
+  else
+    error("Could not retrieve remote file.")
+  end
 end
 
 local function downloadGitHubDirectory(url, dirPath)
-    local remoteHandle = http.get(url)
+  local remoteHandle = http.get(url)
 
-    if remoteHandle == nil then
-        error("Could not retrieve directory.")
-        return
+  if remoteHandle == nil then
+    error("Could not retrieve directory.")
+    return
+  end
+
+  local text = remoteHandle.readAll()
+
+  local obj = json.decode(text)
+
+  for i,v in ipairs(obj) do
+    if v.type == "dir" then
+      if not fs.exists(dirPath..v.name) then
+        installerScreen("Making directory "..v.path, 0.5)
+        fs.makeDir(dirPath..v.name)
+      end
+      downloadGitHubDirectory(v.url, dirPath..v.name.."/")
+    elseif v.type == "file" then
+      if not fs.exists(dirPath..v.name) then
+        installerScreen("Downloading file "..v.path, 0.5)
+        downloadFile(rawURL..v.path, dirPath..v.name)
+      end
     end
-
-    local text = remoteHandle.readAll()
-
-    local obj = json.decode(text)
-
-    for i,v in ipairs(obj) do
-        if v.type == "dir" then
-            if not fs.exists(dirPath..v.name) then
-                print("Making directory "..v.path)
-                fs.makeDir(dirPath..v.name)
-            end
-            downloadGitHubDirectory(v.url, dirPath..v.name.."/")
-        elseif v.type == "file" then
-            if not fs.exists(dirPath..v.name) then
-                print("Downloading file "..v.path)
-                downloadFile(rawURL..v.path, dirPath..v.name)
-            end
-        end
-    end
-
+  end
 end
 
 -- End Functions
 
 if not http then
-    printError( name .. " installer requires http API" )
-    printError( "Set enableAPI_http to true in ComputerCraft.cfg" )
-    return
+  printError( name .. " installer requires http API" )
+  printError( "Set enableAPI_http to true in ComputerCraft.cfg" )
+  return
 end
 
 if #args == 1 and (args[1] == "uninstall" or args[1] == "-u") then
-    if fs.exists(osPath) then
-        fs.delete(osPath)
-    end
-    return
+  if fs.exists(osPath) then
+    fs.delete(osPath)
+  end
+  return
 end
 
-resetScreen()
+installerScreen("", 0, true)
 
 if not fs.exists(osPath) or not fs.isDir(osPath) then
-    fs.makeDir(osPath)
+  fs.makeDir(osPath)
 end
 
 if #args < 1 or (args[1] ~= "noupdate") then
-    downloadFile(rawURL.."installer", shell.getRunningProgram())
-    local fileHandle = io.open(shell.getRunningProgram(), "r")
-    if fileHandle then
-        local newVersionNumber = tonumber(string.match(fileHandle:read("*l"), "local versionNumber = (.*)"))
-        fileHandle:close()
-        if newVersionNumber > versionNumber then
-            shell.run(shell.getRunningProgram(), "noupdate")
-            return
-        end
+  downloadFile(rawURL.."installer", shell.getRunningProgram())
+  local fileHandle = io.open(shell.getRunningProgram(), "r")
+  if fileHandle then
+    local newVersionNumber = tonumber(string.match(fileHandle:read("*l"), "local versionNumber = (.*)"))
+    fileHandle:close()
+    if newVersionNumber > versionNumber then
+      shell.run(shell.getRunningProgram(), "noupdate")
+      return
     end
-    resetScreen()
+  end
+  installerScreen("", 0, true)
 end
 
 if not fs.exists(osPath .. "/apis") then fs.makeDir(osPath .. "/apis") end
 if not fs.exists(osPath .. "/apis/json") then
-    print("Downloading JSON api")
-    downloadFile(rawURL .. name .. "/apis/json", osPath .. "/apis/json")
+  installerScreen("Downloading JSON api", 0.25)
+  downloadFile(rawURL .. name .. "/apis/json", osPath .. "/apis/json")
 end
 os.loadAPI(osPath .. "/apis/json")
 
 downloadGitHubDirectory(apiURL .. name .. "/", osPath .. "/")
 
-print("Run " .. name .. " on startup? (y/N)")
-term.write("> ")
-local input = read()
-if #input > 0 then
-    input = string.lower(string.sub(input, 1, 1))
-    if input == "y" then
-        local handle = io.open("/startup", "a")
-        if not handle then -- Append bug in ComputerCraft does not create
-            handle = io.open("/startup", "w")
-        end
-        if handle then
-            handle:write([[shell.run("]]..osPath..[[/startup")]].."\n")
-            handle:close()
-        end
-    end
+if yesNoScreen(false, "Run " .. name .. " on startup?") then
+  local handle = io.open("/startup", "a")
+  if not handle then -- Append bug in ComputerCraft does not create
+    handle = io.open("/startup", "w")
+  end
+  if handle then
+    handle:write([[shell.run("]]..osPath..[[/startup")]].."\n")
+    handle:close()
+  end
 end
 
-print("Reboot now? (Y/n)")
-term.write("> ")
-input = read()
-if #input > 0 then
-    input = string.lower(string.sub(input, 1, 1))
-    if input == "y" then
-        os.reboot()
-    end
-else
-    os.reboot()
+if yesNoScreen(true, "Reboot now?") then
+  os.reboot()
 end
 
 term.clear()
