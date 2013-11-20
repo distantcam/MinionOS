@@ -1,31 +1,51 @@
 local name = "MinionOS"
 local version = "0.1"
 
+
+-- Patch systems
+os.path = function() return "/" .. name end
+
+peripheral.getByType = function(type)
+  local p = {}
+  for _,n in ipairs(peripheral.getNames()) do
+    if peripheral.getType(n) == type then
+      table.insert(p, peripheral.wrap(n))
+    end
+  end
+  return unpack(p)
+end
+
+
+-- Load APIs
+local tApis = fs.list( os.path() .. "/apis/" )
+for n,sFile in ipairs( tApis ) do
+  if string.sub( sFile, 1, 1 ) ~= "." then
+    local sPath = fs.combine( os.path() .. "/apis/", sFile )
+    if not fs.isDir( sPath ) then
+      os.loadAPI( sPath )
+    end
+  end
+end
+
+
+-- Add os paths as prefixes
+shell.setPath( os.path() .. "/programs:" .. shell.path() )
+help.setPath( os.path() .. "/help:" .. help.path() )
+
+
 -- Colours
 local promptColour, textColour, bgColour
 if term.isColour() then
-	promptColour = colours.yellow
-	textColour = colours.white
-	bgColour = colours.black
+  promptColour = colours.yellow
+  textColour = colours.white
+  bgColour = colours.black
 else
-	promptColour = colours.white
-	textColour = colours.white
-	bgColour = colours.black
+  promptColour = colours.white
+  textColour = colours.white
+  bgColour = colours.black
 end
 
-local tApis = fs.list( "/" .. name .. "/apis/" )
-for n,sFile in ipairs( tApis ) do
-	if string.sub( sFile, 1, 1 ) ~= "." then
-		local sPath = fs.combine( "/" .. name .. "/apis/", sFile )
-		if not fs.isDir( sPath ) then
-			os.loadAPI( sPath )
-		end
-	end
-end
-
-shell.setPath( "/" .. name .. "/programs:" .. shell.path() )
-help.setPath( "/" .. name .. "/help:" .. help.path() )
-
+-- Print OS header
 term.setBackgroundColor( bgColour )
 term.setTextColour( promptColour )
 term.clear()

@@ -1,0 +1,9 @@
+local cryptoAccelerator = peripheral.getByType("cryptographic accelerator")
+
+function hash(str)
+  if cryptoAccelerator then
+    return cryptoAccelerator.hash("SHA256", str)
+  end
+
+  error("No default hash implementation.")
+end
