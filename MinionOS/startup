@@ -2,7 +2,7 @@ local name = "MinionOS"
 local version = "0.1"
 
 
--- Patch systems
+-- Patch system APIs
 os.path = function() return "/" .. name end
 
 peripheral.getByType = function(type)
@@ -33,25 +33,54 @@ shell.setPath( os.path() .. "/programs:" .. shell.path() )
 help.setPath( os.path() .. "/help:" .. help.path() )
 
 
--- Colours
-local promptColour, textColour, bgColour
-if term.isColour() then
-  promptColour = colours.yellow
-  textColour = colours.white
-  bgColour = colours.black
-else
-  promptColour = colours.white
-  textColour = colours.white
-  bgColour = colours.black
-end
+-- Exploit to reload as top level system
+if not os._patched then
+  local r = rednet.run
+  function rednet.run()
+    rednet.run = r
+    error("",0)
+  end
+  local p = printError
+  function _G.printError()
+    _G.printError = p
+    
+    os._patched = true
 
--- Print OS header
-term.setBackgroundColor( bgColour )
-term.setTextColour( promptColour )
-term.clear()
-term.setCursorPos( 2, 1 )
-print( os.version() )
-term.setCursorPos( 2, 3 )
-print( name .. " " .. version .. " Environment")
-term.setCursorPos( 1, 5 )
-term.setTextColour( textColour )
+    local ok, err = pcall( function()
+      parallel.waitForAny( 
+        function()
+          os.run( {}, "rom/programs/shell" )
+        end
+      )
+    end )
+
+    if not ok then
+      printError( err )
+    end
+  end
+
+
+else
+  -- Colours
+  local promptColour, textColour, bgColour
+  if term.isColour() then
+    promptColour = colours.yellow
+    textColour = colours.white
+    bgColour = colours.black
+  else
+    promptColour = colours.white
+    textColour = colours.white
+    bgColour = colours.black
+  end
+
+  -- Print OS header
+  term.setBackgroundColor( bgColour )
+  term.setTextColour( promptColour )
+  term.clear()
+  term.setCursorPos( 2, 1 )
+  print( os.version() )
+  term.setCursorPos( 2, 3 )
+  print( name .. " " .. version .. " Environment")
+  term.setCursorPos( 1, 5 )
+  term.setTextColour( textColour )
+end
