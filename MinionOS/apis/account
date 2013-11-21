@@ -1,0 +1,49 @@
+local accountsFile = os.path() .. "/.accounts"
+
+local function loadFile(filename)
+  if fs.exists(filename) then
+    local file = fs.open(filename, "r")
+    local data = textutils.unserialize(file.readAll())
+    file.close()
+    return data
+  else
+    return {}
+  end
+end
+
+local function saveFile(data, filename)
+  local file = fs.open(filename, "w")
+  file.write(textutils.serialize(data))
+  file.close()
+end
+
+function createUser(username, password, group)
+  local accounts = loadFile(accountsFile)
+  local user = {}
+  user.password = crypto.hash(password)
+  user.group = group
+  accounts[username] = user
+  saveFile(accounts)
+end
+
+function updatePassword(username, oldPassword, newPassword)
+  local accounts = loadFile(accountsFile)
+  local user = accounts[username]
+  if not user then
+    error("User '"..username.."' does not exist.")
+  end
+  if user.password ~= crypto.hash(oldPassword) then
+    error("Old password does not match. Password not changed.")
+  end
+  user.password = crypto.hash(newPassword)
+  saveFile(accounts)
+end
+
+function authenticateUser(username, password)
+  local accounts = loadFile(accountsFile)
+  local user = accounts[username]
+  if not user then
+    return false
+  end
+  return user.password == crypto.hash(oldPassword)
+end

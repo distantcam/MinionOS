@@ -92,8 +92,24 @@ local function secureread( _sReplaceChar )
   return sLine
 end
 
-if not fs.exists(os.path() .. "/.passwords") then
-  -- TODO Setup
+local function userPrompt(promptColour, textColour)
+  local user, password
+
+  while not user do
+    term.setTextColour( promptColour )
+    write("   Login: ")
+    term.setTextColour( textColour )
+    user = secureread()
+  end
+
+  while not password do
+    term.setTextColour( promptColour )
+    write("Password: ")
+    term.setTextColour( textColour )
+    password = secureread("*")
+  end
+
+  return user, password
 end
 
 -- Colours
@@ -108,26 +124,38 @@ else
   bgColour = colours.black
 end
 
-term.setBackgroundColor( bgColour )
-term.setTextColour( promptColour )
-term.clear()
-term.setCursorPos( 2, 2 )
-print( os.version() )
-term.setCursorPos( 1, 4 )
+if not fs.exists(os.path() .. "/.passwords") then
+  term.setBackgroundColor( bgColour )
+  term.setTextColour( promptColour )
+  term.clear()
+  term.setCursorPos( 2, 2 )
+  print( "Set up administrator account." )
+  term.setCursorPos( 1, 4 )
+  
+  local user, password = userPrompt(promptColour, textColour)
+  account.createUser(user, password, "administrator")
 
-write("   Login: ")
-term.setTextColour( textColour )
-local user = secureread()
+  write("Administrator account created.")
+  os.sleep(3)
+  term.clear()
+end
 
-term.setTextColour( promptColour )
+while true do
+  term.setBackgroundColor( bgColour )
+  term.setTextColour( promptColour )
+  term.clear()
+  term.setCursorPos( 2, 2 )
+  print( os.version() )
+  term.setCursorPos( 1, 4 )
 
-write("Password: ")
-term.setTextColour( textColour )
-local password = secureread("*")
+  while true do
+    local user, password = userPrompt(promptColour, textColour)
+    if account.authenticateUser(user, password) then
+      break
+    else
+      print("Invalid login.")
+    end
+  end
 
--- TODO Check credentials
-
-term.clear()
-term.setCursorPos(1, 1)
-
-os.run( {}, "rom/programs/shell" )
+  os.run( {}, "rom/programs/shell" )
+end

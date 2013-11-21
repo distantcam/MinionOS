@@ -1,54 +1,4 @@
 local name = "MinionOS"
-local version = "0.1"
-
-local function runAtTop()
-  -- Patch system APIs
-  os.path = function() return "/" .. name end
-  os.version = function() return name .. " " .. version end
-
-  peripheral.getByType = function(type)
-    local p = {}
-    for _,n in ipairs(peripheral.getNames()) do
-      if peripheral.getType(n) == type then
-        table.insert(p, peripheral.wrap(n))
-      end
-    end
-    return unpack(p)
-  end
-
-
-  -- Load APIs
-  local tApis = fs.list( os.path() .. "/apis/" )
-  for n,sFile in ipairs( tApis ) do
-    if string.sub( sFile, 1, 1 ) ~= "." then
-      local sPath = fs.combine( os.path() .. "/apis/", sFile )
-      if not fs.isDir( sPath ) then
-        os.loadAPI( sPath )
-      end
-    end
-  end
-
-
-  -- Add os paths as prefixes
-  shell.setPath( os.path() .. "/programs:" .. shell.path() )
-  help.setPath( os.path() .. "/help:" .. help.path() )
-
-
-  local ok, err = pcall( function()
-    parallel.waitForAny( 
-      function()
-        os.run( {}, "/"..name.."/programs/login" )
-      end,
-      function()
-        rednet.run()
-      end
-    )
-  end )
-
-  if not ok then
-    printError( err )
-  end
-end
 
 -- Exploit to reload as top level system
 if not os._patched then
@@ -63,6 +13,6 @@ if not os._patched then
     
     os._patched = true
 
-    runAtTop()
+    dofile("/"..name.."/init")
   end
 end
