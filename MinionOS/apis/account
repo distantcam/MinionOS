@@ -1,4 +1,4 @@
-local accountsFile = os.path() .. "/.accounts"
+accountsFile = os.path() .. "/.accounts"
 
 local function loadFile(filename)
   if fs.exists(filename) then

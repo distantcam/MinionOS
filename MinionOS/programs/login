@@ -139,7 +139,7 @@ else
   bgColour = colours.black
 end
 
-if not fs.exists(os.path() .. "/.passwords") then
+if not fs.exists(account.accountsFile) then
   term.setBackgroundColor( bgColour )
   term.setTextColour( promptColour )
   term.clear()
