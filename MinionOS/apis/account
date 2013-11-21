@@ -23,7 +23,7 @@ function createUser(username, password, group)
   user.password = crypto.hash(password)
   user.group = group
   accounts[username] = user
-  saveFile(accounts)
+  saveFile(accounts, accountsFile)
 end
 
 function updatePassword(username, oldPassword, newPassword)
@@ -36,7 +36,7 @@ function updatePassword(username, oldPassword, newPassword)
     error("Old password does not match. Password not changed.")
   end
   user.password = crypto.hash(newPassword)
-  saveFile(accounts)
+  saveFile(accounts, accountsFile)
 end
 
 function authenticateUser(username, password)
