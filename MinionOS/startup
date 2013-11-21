@@ -49,7 +49,7 @@ if not os._patched then
     local ok, err = pcall( function()
       parallel.waitForAny( 
         function()
-          os.run( {}, "rom/programs/shell" )
+          os.run( {}, os.path() .."/programs/login" )
         end
       )
     end )

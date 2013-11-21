@@ -1,0 +1,128 @@
+local function secureread( _sReplaceChar )
+  term.setCursorBlink( true )
+
+  local sLine = ""
+  local nHistoryPos = nil
+  local nPos = 0
+  if _sReplaceChar then
+    _sReplaceChar = string.sub( _sReplaceChar, 1, 1 )
+  end
+  
+  local w, h = term.getSize()
+  local sx, sy = term.getCursorPos()  
+  
+  local function redraw( _sCustomReplaceChar )
+    local nScroll = 0
+    if sx + nPos >= w then
+      nScroll = (sx + nPos) - w
+    end
+      
+    term.setCursorPos( sx, sy )
+    local sReplace = _sCustomReplaceChar or _sReplaceChar
+    if sReplace then
+      term.write( string.rep( sReplace, string.len(sLine) - nScroll ) )
+    else
+      term.write( string.sub( sLine, nScroll + 1 ) )
+    end
+    term.setCursorPos( sx + nPos - nScroll, sy )
+  end
+  
+  while true do
+    local sEvent, param = os.pullEventRaw()
+    if sEvent == "char" then
+      sLine = string.sub( sLine, 1, nPos ) .. param .. string.sub( sLine, nPos + 1 )
+      nPos = nPos + 1
+      redraw()
+      
+    elseif sEvent == "key" then
+        if param == keys.enter then
+        -- Enter
+        break
+        
+      elseif param == keys.left then
+        -- Left
+        if nPos > 0 then
+          nPos = nPos - 1
+          redraw()
+        end
+        
+      elseif param == keys.right then
+        -- Right        
+        if nPos < string.len(sLine) then
+          redraw(" ")
+          nPos = nPos + 1
+          redraw()
+        end
+      
+      elseif param == keys.backspace then
+        -- Backspace
+        if nPos > 0 then
+          redraw(" ")
+          sLine = string.sub( sLine, 1, nPos - 1 ) .. string.sub( sLine, nPos + 1 )
+          nPos = nPos - 1         
+          redraw()
+        end
+
+      elseif param == keys.home then
+        -- Home
+        redraw(" ")
+        nPos = 0
+        redraw()
+
+      elseif param == keys.delete then
+        if nPos < string.len(sLine) then
+          redraw(" ")
+          sLine = string.sub( sLine, 1, nPos ) .. string.sub( sLine, nPos + 2 )       
+          redraw()
+        end
+
+      elseif param == keys["end"] then
+        -- End
+        redraw(" ")
+        nPos = string.len(sLine)
+        redraw()
+      end
+    end
+  end
+  
+  term.setCursorBlink( false )
+  term.setCursorPos( w + 1, sy )
+  print()
+  
+  return sLine
+end
+
+if not fs.exists(os.path() .. "/.passwords") then
+  -- TODO Setup
+end
+
+-- Colours
+local promptColour, textColour, bgColour
+if term.isColour() then
+  promptColour = colours.yellow
+  textColour = colours.white
+  bgColour = colours.black
+else
+  promptColour = colours.white
+  textColour = colours.white
+  bgColour = colours.black
+end
+
+term.setBackgroundColor( bgColour )
+term.setTextColour( promptColour )
+term.clear()
+term.setCursorPos( 2, 1 )
+print( os.version() )
+term.setCursorPos( 2, 3 )
+print( name .. " " .. version .. " Environment")
+term.setCursorPos( 1, 5 )
+print("Login: ")
+local user = secureread()
+print("Password: ")
+local password = secureread("*")
+
+-- TODO Check credentials
+
+term.setTextColour( textColour )
+
+os.run( {}, "rom/programs/shell" )
