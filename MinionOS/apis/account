@@ -45,5 +45,5 @@ function authenticateUser(username, password)
   if not user then
     return false
   end
-  return user.password == crypto.hash(oldPassword)
+  return user.password == crypto.hash(password)
 end
