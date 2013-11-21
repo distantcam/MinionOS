@@ -112,7 +112,7 @@ term.setBackgroundColor( bgColour )
 term.setTextColour( promptColour )
 term.clear()
 term.setCursorPos( 2, 2 )
-print( os.name() .. " " .. os.version() )
+print( os.version() )
 term.setCursorPos( 1, 4 )
 
 write("   Login: ")
@@ -127,5 +127,7 @@ local password = secureread("*")
 
 -- TODO Check credentials
 
+term.clear()
+term.setCursorPos(1, 1)
 
 os.run( {}, "rom/programs/shell" )
