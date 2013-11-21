@@ -92,20 +92,20 @@ local function secureread( _sReplaceChar )
   return sLine
 end
 
-local function prompt(promptText, promptColour, textColour)
+local function prompt(promptText, promptColour, textColour, replaceChar)
   local input
   while not input do
     term.setTextColour( promptColour )
     write(promptText)
     term.setTextColour( textColour )
-    input = secureread()
+    input = secureread(replaceChar)
   end
   return input
 end
 
 local function loginPrompt(promptColour, textColour)
   local user     = prompt("   Login: ", promptColour, textColour)
-  local password = prompt("Password: ", promptColour, textColour)
+  local password = prompt("Password: ", promptColour, textColour, "*")
 
   return user, password
 end
@@ -115,8 +115,8 @@ local function newUserPrompt(promptColour, textColour)
   local password1, password2 = "1", "2"
 
   while true do
-    password1 = prompt("      Password: ", promptColour, textColour)
-    password2 = prompt("Password again: ", promptColour, textColour)
+    password1 = prompt("      Password: ", promptColour, textColour, "*")
+    password2 = prompt("Password again: ", promptColour, textColour, "*")
     if password1 ~= password2 then
       print("Password doesn't match. Try again.")
     else
@@ -151,7 +151,7 @@ if not fs.exists(os.path() .. "/.passwords") then
   account.createUser(user, password, "administrator")
 
   write("Administrator account created.")
-  os.sleep(3)
+  os.sleep(2)
   term.clear()
 end
 
