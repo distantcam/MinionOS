@@ -4,6 +4,8 @@ local version = "0.1"
 local function runAtTop()
   -- Patch system APIs
   os.path = function() return "/" .. name end
+  os.name = function() return name end
+  os.version = function() return version end
 
   peripheral.getByType = function(type)
     local p = {}
