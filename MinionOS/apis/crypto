@@ -185,10 +185,10 @@ local function sha256(msg)
 end
 
 function hash(str)
-  if cryptoAccelerator then
-    return cryptoAccelerator.hash("SHA256", str)
-  else
-    --return sha256(str)
-    error("Crypographic accelerator needed.")
-  end
+  --[[if cryptoAccelerator then
+    local h = cryptoAccelerator.hash("SHA256", str)
+    return string.rep("0", 64 - #h) .. h
+  else]]
+    return sha256(str)
+  --end
 end

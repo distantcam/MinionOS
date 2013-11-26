@@ -127,6 +127,15 @@ local function newUserPrompt(promptColour, textColour)
   return user, password1
 end
 
+local function loginHeader(bgColour, promptColour)
+  term.setBackgroundColour( bgColour )
+  term.setTextColour( promptColour )
+  term.clear()
+  term.setCursorPos( 2, 2 )
+  print( os.version() )
+  term.setCursorPos( 1, 4 )
+end
+
 -- Colours
 local promptColour, textColour, bgColour
 if term.isColour() then
@@ -156,19 +165,19 @@ if not fs.exists(account.accountsFile) then
 end
 
 while true do
-  term.setBackgroundColor( bgColour )
-  term.setTextColour( promptColour )
-  term.clear()
-  term.setCursorPos( 2, 2 )
-  print( os.version() )
-  term.setCursorPos( 1, 4 )
+  loginHeader(bgColour, promptColour)
 
   while true do
     local user, password = loginPrompt(promptColour, textColour)
     if account.authenticateUser(user, password) then
+      term.clear()
+      term.setCursorPos(1, 1)
       break
     else
       print("Invalid login.")
+      os.startTimer(3)
+      os.pullEventRaw("timer")
+      loginHeader(bgColour, promptColour)
     end
   end
 
